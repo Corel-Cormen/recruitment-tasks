@@ -1,0 +1,97 @@
+// Cylinder with hemispherical ends.
+struct Capsule
+{
+     vec3 points[2];
+     float radius;
+
+     vec3 inflectionPoint(vec3 v)
+     {
+         if(points[0].x == points[1].x && points[0].y == points[1].y && points[0].z == points[1].z)
+         {
+             Sphere sphere{ vec3{points[0].x, points[0].y, points[0].z }, radius};
+             return sphere.write(v);
+         }
+         else
+         {
+             // center point of capsule
+             vec3 maxPoint;
+             maxPoint.x = (points[0].x + points[1].x) / 2.0f;
+             maxPoint.y = (points[0].y + points[1].y) / 2.0f;
+             maxPoint.z = (points[0].z + points[1].z) / 2.0f;
+
+             // check whitch way vector is going (near point)
+             float dist_0 = distanse(points[0], maxPoint, v);
+             float dist_1 = distanse(points[1], maxPoint, v);
+             int idx;
+             if(dist_0 < dist_1)
+                 idx = 0;
+             else
+                 idx = 1;
+
+             if(idx == 0)   // low point
+             {
+                 // counting the point between two points
+                 while(maxPoint.x > points[idx].x+radius &&
+                       maxPoint.y > points[idx].y+radius &&
+                       maxPoint.z > points[idx].z+radius)
+                 {
+                     maxPoint.x += v.x*EPS;
+                     maxPoint.y += v.y*EPS;
+                     maxPoint.z += v.z*EPS;
+                 }
+
+                 // check does point belong on the circle
+                 if(maxPoint.x <= points[idx].x+radius &&
+                    maxPoint.y <= points[idx].y+radius &&
+                    maxPoint.z <= points[idx].z+radius)
+                 {
+                     // counting point in a circle
+                     while(maxPoint.x > points[idx].x-radius &&
+                           maxPoint.y > points[idx].y-radius &&
+                           maxPoint.z > points[idx].z-radius)
+                     {
+                         maxPoint.x += v.x*EPS;
+                         maxPoint.y += v.y*EPS;
+                         maxPoint.z += v.z*EPS;
+                     }
+                 }
+             }
+             else           // high point
+             {
+                 // counting the point between two points
+                 while(maxPoint.x < points[idx].x-radius &&
+                       maxPoint.y < points[idx].y-radius &&
+                       maxPoint.z < points[idx].z-radius)
+                 {
+                     maxPoint.x += v.x*EPS;
+                     maxPoint.y += v.y*EPS;
+                     maxPoint.z += v.z*EPS;
+                 }
+
+                 // check does point belong on the circle
+                 if(maxPoint.x >= points[idx].x-radius &&
+                    maxPoint.y >= points[idx].y-radius &&
+                    maxPoint.z >= points[idx].z-radius)
+                 {
+                     // counting point in a circle
+                     while(maxPoint.x < points[idx].x+radius &&
+                           maxPoint.y < points[idx].y+radius &&
+                           maxPoint.z < points[idx].z+radius)
+                     {
+                         maxPoint.x += v.x*EPS;
+                         maxPoint.y += v.y*EPS;
+                         maxPoint.z += v.z*EPS;
+                     }
+                 }
+             }
+
+             return maxPoint;
+         }
+     }
+
+private:
+     float distanse(vec3 v1, vec3 v2, vec3 v_in)
+     {
+         return std::sqrt(std::pow(v1.x-(v2.x+v_in.x), 2) + std::pow(v1.y-(v2.y+v_in.y), 2) + std::pow(v1.z-(v2.z+v_in.y), 2));
+     }
+};
